@@ -1,0 +1,58 @@
+<html>
+	<body>
+		
+		<div data-application="test_app">
+			
+			<div data-module="testModule">
+				
+				<h1 data-text="this">App Name: {this.name} {this.version}</h1>
+				
+				<input data-input="this.testInput" />
+				
+				<button data-button="this.testAction" data-text="">test button {this.name}</button>
+				
+				<div data-repeater="this.test">
+				
+                       <h1>Top</h1>
+						
+						<div data-repeater="this">
+							nested
+						</div>
+						
+					</div>
+				</div>
+				
+			</div>
+			
+		</div>
+		
+		<script src="engine/LightMod.js"></script>
+		<script src="engine/library/library.js"></script>
+		
+		<script src="engine/classes/application.js"></script>
+		
+		<script src="engine/classes/module.js"></script>
+		
+		<script src="engine/classes/viewParser/abstractElement.js"></script>
+		<script src="engine/classes/viewParser/module.js"></script>
+		<script src="engine/classes/viewParser/repeater.js"></script>
+		<script src="engine/classes/viewParser/input.js"></script>
+		<script src="engine/classes/viewParser/button.js"></script>
+		<script src="engine/classes/viewParser/text.js"></script>
+		
+		<script>
+			var testApp = new LightMod.classes.application();
+			testApp.addModule('testModule', {
+				test: [1,2,3],
+				version: 0.1,
+				testAction : function() {
+					alert('button worked')
+				},
+				testInput : 'input text',
+			});
+			
+		</script>
+		
+	</body>
+
+</html>
