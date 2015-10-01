@@ -12,7 +12,8 @@ LightMod.classes.application.prototype.classes.viewParser.input.prototype.parseI
 	this.element.value = this.model;
 	
 	var reference = this;
-	this.element.onInput = function(e) {
-		reference.model = e.target.value;
+	
+	this.element.oninput = function(e) {			
+		reference.setModelValue(reference.element.dataset.input, reference.parent,e.target.value)			
 	}
 }

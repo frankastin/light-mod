@@ -39,11 +39,8 @@ LightMod.classes.application.prototype.addModule = function(modulename, object) 
 }
 
 LightMod.application = LightMod.classes.application;
-LightMod.classes.application.prototype.classes.module = function(name, extend) {
+LightMod.classes.application.prototype.classes.module = function(name, extend, parent) {
 	this.name = name;
-	
-	this.actions = {};
-	this.properties = {};
 	
 	for(prop in extend) {
 		this[prop] = extend[prop];
@@ -56,6 +53,10 @@ LightMod.classes.application.prototype.classes.module = function(name, extend) {
 	}
 	
 	this.viewObject = new LightMod.classes.application.prototype.classes.viewParser.module(this.HTMLelement,this);
+	
+	this.children = {};
+	
+	this.parent = parent;
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.update = function() {
@@ -63,27 +64,58 @@ LightMod.classes.application.prototype.classes.module.prototype.update = functio
 	   this.viewObject.update();
 	}
 }
-LightMod.classes.application.prototype.classes.viewParser.abstractElement = function() {};
+
+LightMod.classes.application.prototype.classes.module.prototype.addChild = function(modulename,object) {
+	this.children[modulename] = new LightMod.classes.application.prototype.classes.module(modulename,object);
+}
+
+LightMod.classes.application.prototype.classes.module.prototype.hide = function() {
+	this.HTMLelement.style.display = 'none';
+}
+
+LightMod.classes.application.prototype.classes.module.prototype.show = function() {
+	this.HTMLelement.style.display = 'none';
+}
+LightMod.classes.application.prototype.classes.viewParser.abstractElement = function () { };
 
 LightMod.classes.application.prototype.classes.viewParser.abstractElement.prototype = {
-	
-	parseModel : function(modelString, parent) {
+
+    parseModel: function (modelString, parent) {
         modelString = modelString.split('.');
-      
-        if(modelString[0] === 'this') {
+
+        if (modelString[0] === 'this') {
+            var model = parent;
+            modelString.shift();
+        } else if (modelString[0] === 'parent') {
+            var model = this.parent;
+            modelString.shift();
+        } else {
+            var model = LightMod;
+        }
+
+        modelString.forEach(function (part) {
+            model = model[part];
+        })
+
+        return model;
+    },
+
+    setModelValue: function (modelString, parent, value) {
+        modelString = modelString.split('.');
+
+        if (modelString[0] === 'this') {
             var model = parent;
             modelString.shift();
         } else {
             var model = LightMod;
         }
-        
-    	modelString.forEach(function(part){
-    		model = model[part];
-    	})
-        
-        return model;
+
+        modelString.forEach(function (part) {
+            model[part] = value;
+        })
+
+        return true;
     }
-    
 }
 LightMod.classes.application.prototype.classes.viewParser.input = function (element, parent) {
 	this.element = element;
@@ -99,22 +131,20 @@ LightMod.classes.application.prototype.classes.viewParser.input.prototype.parseI
 	this.element.value = this.model;
 	
 	var reference = this;
-	this.element.onInput = function(e) {
-		reference.model = e.target.value;
+	
+	this.element.oninput = function(e) {			
+		reference.setModelValue(reference.element.dataset.input, reference.parent,e.target.value)			
 	}
 }
-LightMod.classes.application.prototype.classes.viewParser.button = function (element, parent) {
+LightMod.classes.application.prototype.classes.viewParser.button = function (element, model, module) {
+	
 	this.element = element;
+	this.action = this.parseModel(this.element.dataset.button, module);
 	
-	this.action = this.parseModel(this.element.dataset.button, parent);
+	this.model = model;
+	this.module = module;
 	
-	this.element.value = this.model;
-	
-	var reference = this;
-	
-	this.element.onclick = function(e) {
-		reference.action();
-	}
+	this.element.onclick = this.action.bind(this);
 }
 
 LightMod.classes.application.prototype.classes.viewParser.button.inherits(LightMod.classes.application.prototype.classes.viewParser.abstractElement);
@@ -139,12 +169,12 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 		}
 		
 		if (child.hasAttribute('data-button')) {
-			reference.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, reference.model));
+			reference.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, reference.model, reference.model));
 		}
 		
 		if (child.hasAttribute('data-repeater')) {
-		    reference.objects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, reference.model, reference));
-		    return;
+		   reference.objects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, reference.model, reference));
+		   return;
 		} 
 
 		if (child.hasAttribute('data-text')) {
@@ -152,7 +182,7 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 		}
 		
 		if(child.children.length > 0) {
-			this.parseElement(child);
+			reference.parseElement(child);
 		}
 	})
 }
@@ -191,9 +221,13 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.inherits(Ligh
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.parseRepeater = function () {
 	this.model = this.parseModel(this.node.dataset.repeater, this.parentModel);
-	this.instances = [];
-    this.populateInstances();
-	this.updateDom();
+	this.instances = [];			
+    this.populateInstances();			if (this.model) {
+	this.updateDom();				this.instances = [];
+		this.populateInstances();
+		this.updateDom();
+	}
+
 }
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.populateInstances = function () {
@@ -205,10 +239,12 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.pop
 		}
 		
 	} else {
-		this.model.forEach(function (instance) {
+		if(this.model) {
+			this.model.forEach(function (instance) {
 			var instanceObj = new LightMod.classes.application.prototype.classes.viewParser.repeater.instance(instance, reference.node.cloneNode(true));
 			reference.instances.push(instanceObj);
 		});	
+		}
 	}
 	
 
@@ -230,18 +266,15 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.pop
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.updateDom = function () {
 	var reference = this;
-	
-	if(this.liveNodes.length > 0) {
-		this.liveNodes.forEach(function(element) {
+	if (this.liveNodes.length > 0) {
+		this.liveNodes.forEach(function (element) {
 			element.parentNode.removeChild(element);
 		})
 	}
-	
 	this.liveNodes = [];
-	
 	this.instances.forEach(function (instance) {
 		reference.liveNodes.push(instance.node);
-		reference.referenceNode.parentNode.insertBefore(instance.node,reference.referenceNode);
+		reference.referenceNode.parentNode.insertBefore(instance.node, reference.referenceNode);
 	})
 }
 
@@ -252,11 +285,11 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.par
 	var model = (typeof this.model === "object") ? this.model[index] : reference.module.model;
 	
 	if (node.hasAttribute('data-input')) {
-		reference.module.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(node, reference.module.model));
+		reference.module.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(node, model));
 	}
 
 	if (node.hasAttribute('data-button')) {
-		reference.module.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(node, reference.module.model));
+		reference.module.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(node, model, reference.module.model));
 	}
 
 	if (node.hasAttribute('data-text')) {

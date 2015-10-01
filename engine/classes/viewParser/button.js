@@ -1,15 +1,12 @@
-LightMod.classes.application.prototype.classes.viewParser.button = function (element, parent) {
+LightMod.classes.application.prototype.classes.viewParser.button = function (element, model, module) {
+	
 	this.element = element;
+	this.action = this.parseModel(this.element.dataset.button, module);
 	
-	this.action = this.parseModel(this.element.dataset.button, parent);
+	this.model = model;
+	this.module = module;
 	
-	this.element.value = this.model;
-	
-	var reference = this;
-	
-	this.element.onclick = function(e) {
-		reference.action();
-	}
+	this.element.onclick = this.action.bind(this);
 }
 
 LightMod.classes.application.prototype.classes.viewParser.button.inherits(LightMod.classes.application.prototype.classes.viewParser.abstractElement);

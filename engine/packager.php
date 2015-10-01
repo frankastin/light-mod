@@ -4,7 +4,7 @@
 	
 	$distFileStr = 'LightMod = (function() {'.PHP_EOL;
 	
-	$root = 'c:/documents/LightMod/';
+	$root = 'c:/users/francis astin/documents/light mod/';
 	
 	foreach($scripts as $script) {
 		$file = $root.'/engine/'.$script.'.js';

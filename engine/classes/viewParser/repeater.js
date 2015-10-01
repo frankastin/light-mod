@@ -21,9 +21,13 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.inherits(Ligh
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.parseRepeater = function () {
 	this.model = this.parseModel(this.node.dataset.repeater, this.parentModel);
-	this.instances = [];
-    this.populateInstances();
-	this.updateDom();
+	this.instances = [];			
+    this.populateInstances();			if (this.model) {
+	this.updateDom();				this.instances = [];
+		this.populateInstances();
+		this.updateDom();
+	}
+
 }
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.populateInstances = function () {
@@ -35,10 +39,12 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.pop
 		}
 		
 	} else {
-		this.model.forEach(function (instance) {
+		if(this.model) {
+			this.model.forEach(function (instance) {
 			var instanceObj = new LightMod.classes.application.prototype.classes.viewParser.repeater.instance(instance, reference.node.cloneNode(true));
 			reference.instances.push(instanceObj);
 		});	
+		}
 	}
 	
 
@@ -60,18 +66,15 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.pop
 
 LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.updateDom = function () {
 	var reference = this;
-	
-	if(this.liveNodes.length > 0) {
-		this.liveNodes.forEach(function(element) {
+	if (this.liveNodes.length > 0) {
+		this.liveNodes.forEach(function (element) {
 			element.parentNode.removeChild(element);
 		})
 	}
-	
 	this.liveNodes = [];
-	
 	this.instances.forEach(function (instance) {
 		reference.liveNodes.push(instance.node);
-		reference.referenceNode.parentNode.insertBefore(instance.node,reference.referenceNode);
+		reference.referenceNode.parentNode.insertBefore(instance.node, reference.referenceNode);
 	})
 }
 
@@ -82,11 +85,11 @@ LightMod.classes.application.prototype.classes.viewParser.repeater.prototype.par
 	var model = (typeof this.model === "object") ? this.model[index] : reference.module.model;
 	
 	if (node.hasAttribute('data-input')) {
-		reference.module.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(node, reference.module.model));
+		reference.module.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(node, model));
 	}
 
 	if (node.hasAttribute('data-button')) {
-		reference.module.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(node, reference.module.model));
+		reference.module.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(node, model, reference.module.model));
 	}
 
 	if (node.hasAttribute('data-text')) {

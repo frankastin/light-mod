@@ -19,12 +19,12 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 		}
 		
 		if (child.hasAttribute('data-button')) {
-			reference.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, reference.model));
+			reference.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, reference.model, reference.model));
 		}
 		
 		if (child.hasAttribute('data-repeater')) {
-		    reference.objects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, reference.model, reference));
-		    return;
+		   reference.objects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, reference.model, reference));
+		   return;
 		} 
 
 		if (child.hasAttribute('data-text')) {
@@ -32,7 +32,7 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 		}
 		
 		if(child.children.length > 0) {
-			this.parseElement(child);
+			reference.parseElement(child);
 		}
 	})
 }
