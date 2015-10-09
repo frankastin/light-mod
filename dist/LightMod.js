@@ -35,38 +35,37 @@ LightMod.classes.application.prototype.classes = {};
 LightMod.classes.application.prototype.classes.viewParser = {};
 
 LightMod.classes.application.prototype.addModule = function(modulename, object) {
-	this.modules[modulename] = new LightMod.classes.application.prototype.classes.module(modulename,object);
+	this.modules[modulename] = new LightMod.classes.application.prototype.classes.module(modulename, object);
 }
 
 LightMod.application = LightMod.classes.application;
 LightMod.classes.application.prototype.classes.module = function(name, extend, parent) {
 	this.name = name;
+	this.parent = parent;
 	
 	for(prop in extend) {
 		this[prop] = extend[prop];
 	}
 	
 	this.HTMLelement = document.querySelector('[data-module="'+name+'"]');
-	
 	if(this.init){
 		this.init();
 	}
 	
-	this.viewObject = new LightMod.classes.application.prototype.classes.viewParser.module(this.HTMLelement,this);
+	this.viewObject = new LightMod.classes.application.prototype.classes.viewParser.module(this.HTMLelement,this,parent);
 	
 	this.children = {};
-	
-	this.parent = parent;
 }
 
-LightMod.classes.application.prototype.classes.module.prototype.update = function() {
+LightMod.classes.application.prototype.classes.module.prototype.update = function(cascade) {
 	if(this.viewObject) {
-	   this.viewObject.update();
+	  this.viewObject.update(cascade);
 	}
 }
 
-LightMod.classes.application.prototype.classes.module.prototype.addChild = function(modulename,object) {
-	this.children[modulename] = new LightMod.classes.application.prototype.classes.module(modulename,object);
+LightMod.classes.application.prototype.classes.module.prototype.addModule = function(modulename,object) {
+	this.children[modulename] = Object.create(this);
+	this.childrent[modulename].prototype.constructor(modulename,object,this);
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.hide = function() {
@@ -80,24 +79,31 @@ LightMod.classes.application.prototype.classes.viewParser.abstractElement = func
 
 LightMod.classes.application.prototype.classes.viewParser.abstractElement.prototype = {
 
-    parseModel: function (modelString, parent) {
+    parseModel: function (modelString, model) {
         modelString = modelString.split('.');
 
         if (modelString[0] === 'this') {
-            var model = parent;
+            var returnModel = model;
             modelString.shift();
         } else if (modelString[0] === 'parent') {
-            var model = this.parent;
-            modelString.shift();
+			var returnModel = this.module.parent;
+			modelString.shift();
         } else {
-            var model = LightMod;
+            var returnModel = LightMod;
         }
-
+		
         modelString.forEach(function (part) {
-            model = model[part];
-        })
+            returnModel = returnModel[part];
+		})
+		
+		if(!returnModel && this.module) {
+			var returnModel = model.parent;
+			modelString.forEach(function (part) {
+            returnModel = returnModel[part];
+		    })
+		}
 
-        return model;
+        return returnModel;
     },
 
     setModelValue: function (modelString, parent, value) {
@@ -137,21 +143,19 @@ LightMod.classes.application.prototype.classes.viewParser.input.prototype.parseI
 	}
 }
 LightMod.classes.application.prototype.classes.viewParser.button = function (element, model, module) {
+
+	this.action = this.parseModel(element.dataset.button, module);
 	
-	this.element = element;
-	this.action = this.parseModel(this.element.dataset.button, module);
-	
-	this.model = model;
-	this.module = module;
-	
-	this.element.onclick = this.action.bind(this);
+	this.element.onclick = this.action.bind(this.module, model);
 }
 
 LightMod.classes.application.prototype.classes.viewParser.button.inherits(LightMod.classes.application.prototype.classes.viewParser.abstractElement);
-LightMod.classes.application.prototype.classes.viewParser.module = function(element, model) {
+LightMod.classes.application.prototype.classes.viewParser.module = function(element, model, parent) {
 	this.element = element;
 	
 	this.name = this.element.dataset.module;
+	
+	this.parent = parent;
 	
 	this.model = model;
 	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[]};
@@ -164,6 +168,10 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 	var reference = this;
 	
 	Array.prototype.forEach.call(element.children, function(child) {
+		if(child.hasAttribute('data-module')) {
+		    return;
+		}
+		
 	    if(child.hasAttribute('data-input')) {
 			reference.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(child, reference.model));
 		}
@@ -187,7 +195,7 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 	})
 }
 
-LightMod.classes.application.prototype.classes.viewParser.module.prototype.update = function() {
+LightMod.classes.application.prototype.classes.viewParser.module.prototype.update = function(cascade) {
 	Array.prototype.forEach.call(this.objects.repeaters, function(repeater) {
 		repeater.parseRepeater();
 	})
@@ -197,6 +205,14 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.updat
 	Array.prototype.forEach.call(this.objects.inputs, function(input) {
 		input.parseInput();
 	})
+	
+	if(cascade) {
+		for (var key in this.model.children) {
+			if (this.model.children.hasOwnProperty(key)) {
+				this.model.children[key].update(true);
+			}
+		}	
+	}
 }
 LightMod.classes.application.prototype.classes.viewParser.repeater = function (element, parent, module) {
 	

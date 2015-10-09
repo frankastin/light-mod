@@ -2,24 +2,31 @@ LightMod.classes.application.prototype.classes.viewParser.abstractElement = func
 
 LightMod.classes.application.prototype.classes.viewParser.abstractElement.prototype = {
 
-    parseModel: function (modelString, parent) {
+    parseModel: function (modelString, model) {
         modelString = modelString.split('.');
 
         if (modelString[0] === 'this') {
-            var model = parent;
+            var returnModel = model;
             modelString.shift();
         } else if (modelString[0] === 'parent') {
-            var model = this.parent;
-            modelString.shift();
+			var returnModel = this.module.parent;
+			modelString.shift();
         } else {
-            var model = LightMod;
+            var returnModel = LightMod;
         }
-
+		
         modelString.forEach(function (part) {
-            model = model[part];
-        })
+            returnModel = returnModel[part];
+		})
+		
+		if(!returnModel && this.module) {
+			var returnModel = model.parent;
+			modelString.forEach(function (part) {
+            returnModel = returnModel[part];
+		    })
+		}
 
-        return model;
+        return returnModel;
     },
 
     setModelValue: function (modelString, parent, value) {

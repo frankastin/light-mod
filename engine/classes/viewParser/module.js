@@ -1,7 +1,9 @@
-LightMod.classes.application.prototype.classes.viewParser.module = function(element, model) {
+LightMod.classes.application.prototype.classes.viewParser.module = function(element, model, parent) {
 	this.element = element;
 	
 	this.name = this.element.dataset.module;
+	
+	this.parent = parent;
 	
 	this.model = model;
 	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[]};
@@ -14,6 +16,10 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 	var reference = this;
 	
 	Array.prototype.forEach.call(element.children, function(child) {
+		if(child.hasAttribute('data-module')) {
+		    return;
+		}
+		
 	    if(child.hasAttribute('data-input')) {
 			reference.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(child, reference.model));
 		}
@@ -37,7 +43,7 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 	})
 }
 
-LightMod.classes.application.prototype.classes.viewParser.module.prototype.update = function() {
+LightMod.classes.application.prototype.classes.viewParser.module.prototype.update = function(cascade) {
 	Array.prototype.forEach.call(this.objects.repeaters, function(repeater) {
 		repeater.parseRepeater();
 	})
@@ -47,4 +53,12 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.updat
 	Array.prototype.forEach.call(this.objects.inputs, function(input) {
 		input.parseInput();
 	})
+	
+	if(cascade) {
+		for (var key in this.model.children) {
+			if (this.model.children.hasOwnProperty(key)) {
+				this.model.children[key].update(true);
+			}
+		}	
+	}
 }

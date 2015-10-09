@@ -1,31 +1,30 @@
 LightMod.classes.application.prototype.classes.module = function(name, extend, parent) {
 	this.name = name;
+	this.parent = parent;
 	
 	for(prop in extend) {
 		this[prop] = extend[prop];
 	}
 	
 	this.HTMLelement = document.querySelector('[data-module="'+name+'"]');
-	
 	if(this.init){
 		this.init();
 	}
 	
-	this.viewObject = new LightMod.classes.application.prototype.classes.viewParser.module(this.HTMLelement,this);
+	this.viewObject = new LightMod.classes.application.prototype.classes.viewParser.module(this.HTMLelement,this,parent);
 	
 	this.children = {};
-	
-	this.parent = parent;
 }
 
-LightMod.classes.application.prototype.classes.module.prototype.update = function() {
+LightMod.classes.application.prototype.classes.module.prototype.update = function(cascade) {
 	if(this.viewObject) {
-	   this.viewObject.update();
+	  this.viewObject.update(cascade);
 	}
 }
 
-LightMod.classes.application.prototype.classes.module.prototype.addChild = function(modulename,object) {
-	this.children[modulename] = new LightMod.classes.application.prototype.classes.module(modulename,object);
+LightMod.classes.application.prototype.classes.module.prototype.addModule = function(modulename,object) {
+	this.children[modulename] = Object.create(this);
+	this.childrent[modulename].prototype.constructor(modulename,object,this);
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.hide = function() {
