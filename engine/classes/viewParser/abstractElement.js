@@ -4,7 +4,6 @@ LightMod.classes.application.prototype.classes.viewParser.abstractElement.protot
 
     parseModel: function (modelString, model) {
         modelString = modelString.split('.');
-
         if (modelString[0] === 'this') {
             var returnModel = model;
             modelString.shift();
@@ -15,17 +14,12 @@ LightMod.classes.application.prototype.classes.viewParser.abstractElement.protot
             var returnModel = LightMod;
         }
 		
+   
+        
         modelString.forEach(function (part) {
             returnModel = returnModel[part];
 		})
-		
-		if(!returnModel && this.module) {
-			var returnModel = model.parent;
-			modelString.forEach(function (part) {
-            returnModel = returnModel[part];
-		    })
-		}
-
+        
         return returnModel;
     },
 

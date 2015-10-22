@@ -12,33 +12,47 @@ LightMod.classes.application.prototype.classes.viewParser.module = function(elem
 	
 }
 
-LightMod.classes.application.prototype.classes.viewParser.module.prototype.parseElement = function(element) {
+LightMod.classes.application.prototype.classes.viewParser.module.inherits(LightMod.classes.application.prototype.classes.viewParser.abstractElement);
+
+LightMod.classes.application.prototype.classes.viewParser.module.prototype.parseElement = function(element, model, instance) {
+	
 	var reference = this;
 	
+	var model = model || reference.model;
+	
+	var instance = instance || null;
+	
+	var moduleObjects = (reference.objects) ? reference : reference.module;
+	moduleObjects = (moduleObjects.objects) ? moduleObjects.objects : moduleObjects.module.objects;
+	var module = this.module || this;
+	
 	Array.prototype.forEach.call(element.children, function(child) {
+		
 		if(child.hasAttribute('data-module')) {
 		    return;
 		}
 		
 	    if(child.hasAttribute('data-input')) {
-			reference.objects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(child, reference.model));
+			moduleObjects.inputs.push(new LightMod.classes.application.prototype.classes.viewParser.input(child, model));
 		}
 		
 		if (child.hasAttribute('data-button')) {
-			reference.objects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, reference.model, reference.model));
+			moduleObjects.buttons.push(new LightMod.classes.application.prototype.classes.viewParser.button(child, model, module));
 		}
 		
-		if (child.hasAttribute('data-repeater')) {
-		   reference.objects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, reference.model, reference));
+		if (child.hasAttribute('data-repeater') && !instance) {
+		   moduleObjects.repeaters.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, model, reference));
 		   return;
-		} 
+		} else if (child.hasAttribute('data-repeater') && instance)  {
+			instance.children.push(new LightMod.classes.application.prototype.classes.viewParser.repeater(child, model, reference.module));
+		}
 
 		if (child.hasAttribute('data-text')) {
-		    reference.objects.text.push(new LightMod.classes.application.prototype.classes.viewParser.text(child, reference.model));
+		    moduleObjects.text.push(new LightMod.classes.application.prototype.classes.viewParser.text(child, model));
 		}
 		
 		if(child.children.length > 0) {
-			reference.parseElement(child);
+			reference.parseElement(child,model,instance);
 		}
 	})
 }

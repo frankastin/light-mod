@@ -24,7 +24,7 @@ LightMod.classes.application.prototype.classes.module.prototype.update = functio
 
 LightMod.classes.application.prototype.classes.module.prototype.addModule = function(modulename,object) {
 	this.children[modulename] = Object.create(this);
-	this.childrent[modulename].prototype.constructor(modulename,object,this);
+	this.children[modulename].constructor(modulename,object,this);
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.hide = function() {

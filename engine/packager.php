@@ -1,10 +1,10 @@
 <?php
 	/* Distrubution script packager */
-	$scripts = ['LightMod','library/library','classes/application','classes/module','classes/viewParser/abstractElement','classes/viewParser/input','classes/viewParser/button','classes/viewParser/module','classes/viewParser/repeater','classes/viewParser/text'];
+	$scripts = ['LightMod','library/library','classes/application','classes/module','classes/viewParser/abstractElement','classes/viewParser/module','classes/viewParser/input','classes/viewParser/button','classes/viewParser/repeater','classes/viewParser/text'];
 	
 	$distFileStr = 'LightMod = (function() {'.PHP_EOL;
 	
-	$root = 'c:/users/francis astin/documents/light mod/';
+	$root = 'c:/projects/light-mod/';
 	
 	foreach($scripts as $script) {
 		$file = $root.'/engine/'.$script.'.js';
@@ -16,4 +16,8 @@
 	$distFile = fopen($root.'dist/LightMod.js', "w");
 
 	fwrite($distFile, $distFileStr);
-	?>
+	
+	$extraDistFile = fopen('c:\projects\zen-typing\js\lib\lightmod.js', "w");
+
+	fwrite($extraDistFile, $distFileStr);
+?>
