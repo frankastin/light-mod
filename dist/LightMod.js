@@ -73,34 +73,40 @@ LightMod.classes.application.prototype.classes.module.prototype.hide = function(
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.show = function() {
-	this.HTMLelement.style.display = 'none';
+	this.HTMLelement.style.display = 'block';
 }
-LightMod.classes.application.prototype.classes.viewParser.abstractElement = function () { };
+LightMod.classes.application.prototype.classes.viewParser.abstractElement = function() {};
 
 LightMod.classes.application.prototype.classes.viewParser.abstractElement.prototype = {
 
-    parseModel: function (modelString, model) {
+    parseModel: function(modelString, model) {
         modelString = modelString.split('.');
-        if (modelString[0] === 'this') {
-            var returnModel = model;
-            modelString.shift();
-        } else if (modelString[0] === 'parent') {
-			var returnModel = this.module.parent;
-			modelString.shift();
+        if (model === null) {
+            console.log('here')
+            var returnModel = modelString[1];
+
         } else {
-            var returnModel = LightMod;
+
+            if (modelString[0] === 'this') {
+                var returnModel = model;
+                modelString.shift();
+            } else if (modelString[0] === 'parent') {
+                var returnModel = this.module.parent;
+                modelString.shift();
+            } else {
+                var returnModel = LightMod;
+            }
+
+            modelString.forEach(function(part) {
+                returnModel = returnModel[part];
+            })
         }
-		
-   
-        
-        modelString.forEach(function (part) {
-            returnModel = returnModel[part];
-		})
-        
+
+
         return returnModel;
     },
 
-    setModelValue: function (modelString, parent, value) {
+    setModelValue: function(modelString, parent, value) {
         modelString = modelString.split('.');
 
         if (modelString[0] === 'this') {
@@ -110,7 +116,7 @@ LightMod.classes.application.prototype.classes.viewParser.abstractElement.protot
             var model = LightMod;
         }
 
-        modelString.forEach(function (part) {
+        modelString.forEach(function(part) {
             model[part] = value;
         })
 
@@ -125,7 +131,7 @@ LightMod.classes.application.prototype.classes.viewParser.module = function(elem
 	this.parent = parent;
 	
 	this.model = model;
-	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[]};
+	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[], elements:[]};
 
 	this.parseElement(this.element);
 	
@@ -168,6 +174,10 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 
 		if (child.hasAttribute('data-text')) {
 		    moduleObjects.text.push(new LightMod.classes.application.prototype.classes.viewParser.text(child, model));
+		}
+
+		if (child.hasAttribute('data-element')) {
+		    moduleObjects.elements.push(new LightMod.classes.application.prototype.classes.viewParser.element(child, module.model));
 		}
 		
 		if(child.children.length > 0) {
@@ -327,5 +337,11 @@ LightMod.classes.application.prototype.classes.viewParser.text.prototype.parseTe
 
 	reference.element.innerHTML = parsedString;
 }
+LightMod.classes.application.prototype.classes.viewParser.element = function (element, module) {
+	var name = this.parseModel(element.dataset.element, null);
+	module[name] = element;
+}
+
+LightMod.classes.application.prototype.classes.viewParser.element.inherits(LightMod.classes.application.prototype.classes.viewParser.abstractElement);
 return LightMod;
 }());

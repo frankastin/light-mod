@@ -32,5 +32,5 @@ LightMod.classes.application.prototype.classes.module.prototype.hide = function(
 }
 
 LightMod.classes.application.prototype.classes.module.prototype.show = function() {
-	this.HTMLelement.style.display = 'none';
+	this.HTMLelement.style.display = 'block';
 }

@@ -1,6 +1,8 @@
 <?php
+
 	/* Distrubution script packager */
-	$scripts = ['LightMod','library/library','classes/application','classes/module','classes/viewParser/abstractElement','classes/viewParser/module','classes/viewParser/input','classes/viewParser/button','classes/viewParser/repeater','classes/viewParser/text'];
+
+	$scripts = ['LightMod','library/library','classes/application','classes/module','classes/viewParser/abstractElement','classes/viewParser/module','classes/viewParser/input','classes/viewParser/button','classes/viewParser/repeater','classes/viewParser/text','classes/viewParser/element'];
 	
 	$distFileStr = 'LightMod = (function() {'.PHP_EOL;
 	

@@ -6,7 +6,7 @@ LightMod.classes.application.prototype.classes.viewParser.module = function(elem
 	this.parent = parent;
 	
 	this.model = model;
-	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[]};
+	this.objects = {inputs:[], repeaters:[], buttons:[], text:[], modules:[], elements:[]};
 
 	this.parseElement(this.element);
 	
@@ -49,6 +49,10 @@ LightMod.classes.application.prototype.classes.viewParser.module.prototype.parse
 
 		if (child.hasAttribute('data-text')) {
 		    moduleObjects.text.push(new LightMod.classes.application.prototype.classes.viewParser.text(child, model));
+		}
+
+		if (child.hasAttribute('data-element')) {
+		    moduleObjects.elements.push(new LightMod.classes.application.prototype.classes.viewParser.element(child, module.model));
 		}
 		
 		if(child.children.length > 0) {
